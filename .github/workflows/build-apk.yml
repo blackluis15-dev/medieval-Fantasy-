@@ -6,6 +6,7 @@ on:
     paths:
       - 'Medieval_Fantasy_1_1_horizontal_base.zip'
       - '.github/workflows/build-apk.yml'
+      - 'menu-landscape-fix.css'
 
 permissions:
   contents: read
@@ -40,6 +41,14 @@ jobs:
           cp ../../menu-landscape-fix.css www/css/menu-landscape-fix.css
           sed -i 's#</head>#<link rel="stylesheet" href="css/menu-landscape-fix.css"></head>#' www/index.html
           npm install @capacitor/core@^7 @capacitor/cli@^7 @capacitor/android@^7
+
+      - name: Inspect menu layout selectors
+        working-directory: source/Medieval_Fantasy
+        run: |
+          echo '--- MENU HTML ---'
+          grep -RniE 'main-menu|menu-card|menu-buttons|game-logo|menu-emblem|JUGAR|OPCIONES|CREDITOS|CRÉDITOS|PLAY|OPTIONS' index.html css js | head -160 || true
+          echo '--- MENU CSS ---'
+          grep -RniE 'main-menu|menu-card|menu-buttons|game-logo|menu-emblem|menu-btn|menu-note' css | head -160 || true
 
       - name: Configure Capacitor Android
         working-directory: source/Medieval_Fantasy
