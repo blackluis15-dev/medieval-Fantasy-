@@ -34,12 +34,15 @@ jobs:
           unzip -q Medieval_Fantasy_1_1_horizontal_base.zip -d source
           test -f source/Medieval_Fantasy/index.html
           cd source/Medieval_Fantasy
+          mkdir www
+          cp index.html manifest.webmanifest service-worker.js www/
+          cp -R css js assets www/
           npm install @capacitor/core@^7 @capacitor/cli@^7 @capacitor/android@^7
 
       - name: Configure Capacitor Android
         working-directory: source/Medieval_Fantasy
         run: |
-          npx cap init "Medieval Fantasy" com.blackluis15.medievalfantasy --web-dir .
+          npx cap init "Medieval Fantasy" com.blackluis15.medievalfantasy --web-dir www
           npx cap add android
           python3 - <<'PY'
           from pathlib import Path
