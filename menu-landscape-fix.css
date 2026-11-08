@@ -1,0 +1,69 @@
+/* Ajuste real del menú para pantallas horizontales: logo y botones visibles a la vez. */
+@media (orientation: landscape) {
+  #main-menu { padding: clamp(6px, 1.5vh, 16px); }
+  #main-menu .menu-card {
+    width: min(88vw, 900px);
+    max-height: calc(100% - 8px);
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(190px, .75fr);
+    grid-template-rows: auto auto auto auto auto;
+    align-items: center;
+    justify-items: center;
+    column-gap: clamp(12px, 3vw, 34px);
+    row-gap: 2px;
+    padding: clamp(10px, 2vh, 20px) clamp(16px, 3vw, 30px);
+  }
+  #main-menu .menu-emblem {
+    grid-column: 1;
+    grid-row: 1;
+    width: min(48%, 190px);
+    max-height: clamp(54px, 15vh, 112px);
+    margin: 0 auto 2px;
+  }
+  #main-menu .game-logo {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: clamp(22px, 4.2vw, 40px);
+    margin: 2px 0 4px;
+  }
+  #main-menu .menu-subtitle {
+    grid-column: 1;
+    grid-row: 3;
+    font-size: clamp(8px, 1.2vw, 11px);
+    letter-spacing: clamp(2px, .4vw, 4px);
+    margin: 0 0 4px;
+  }
+  #main-menu .menu-card > div[style*="font-size:27px"] {
+    grid-column: 1;
+    grid-row: 4;
+    font-size: clamp(18px, 2.5vw, 25px) !important;
+    letter-spacing: 5px !important;
+  }
+  #main-menu .menu-buttons {
+    grid-column: 2;
+    grid-row: 1 / span 4;
+    width: min(100%, 250px);
+    gap: clamp(5px, 1.2vh, 10px);
+    margin: 0;
+    align-self: center;
+  }
+  #main-menu .menu-btn {
+    padding: clamp(8px, 1.5vh, 12px) 10px;
+    font-size: clamp(11px, 1.3vw, 14px);
+  }
+  #main-menu .menu-note {
+    grid-column: 1;
+    grid-row: 5;
+    margin: 3px 0 0;
+    font-size: 9px;
+  }
+}
+@media (orientation: landscape) and (max-height: 430px) {
+  #main-menu .menu-card { padding: 5px 14px; }
+  #main-menu .menu-emblem { max-height: 58px; width: min(42%, 130px); }
+  #main-menu .game-logo { font-size: clamp(19px, 3.5vw, 30px); }
+  #main-menu .menu-buttons { gap: 4px; }
+  #main-menu .menu-btn { padding: 6px 8px; }
+  #main-menu .menu-note { display: none; }
+}
