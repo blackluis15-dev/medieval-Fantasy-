@@ -1,0 +1,64 @@
+name: Build Medieval Fantasy APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'Medieval_Fantasy_1_1_horizontal_base.zip'
+      - '.github/workflows/build-apk.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Extract game project
+        run: |
+          test -f Medieval_Fantasy_1_1_horizontal_base.zip
+          unzip -q Medieval_Fantasy_1_1_horizontal_base.zip -d source
+          test -f source/Medieval_Fantasy/index.html
+          cd source/Medieval_Fantasy
+          npm install @capacitor/core@^7 @capacitor/cli@^7 @capacitor/android@^7
+
+      - name: Configure Capacitor Android
+        working-directory: source/Medieval_Fantasy
+        run: |
+          npx cap init "Medieval Fantasy" com.blackluis15.medievalfantasy --web-dir .
+          npx cap add android
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("android/app/src/main/AndroidManifest.xml")
+          s = p.read_text()
+          marker = 'android:screenOrientation="landscape"'
+          if marker not in s:
+              s = s.replace('android:exported="true"', 'android:exported="true" android:screenOrientation="landscape"', 1)
+          p.write_text(s)
+          PY
+          npx cap sync android
+
+      - name: Build debug APK
+        working-directory: source/Medieval_Fantasy/android
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Medieval-Fantasy-APK
+          path: source/Medieval_Fantasy/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
