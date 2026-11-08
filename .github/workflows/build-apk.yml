@@ -37,6 +37,8 @@ jobs:
           mkdir www
           cp index.html manifest.webmanifest service-worker.js www/
           cp -R css js assets www/
+          cp ../../menu-landscape-fix.css www/css/menu-landscape-fix.css
+          sed -i 's#</head>#<link rel="stylesheet" href="css/menu-landscape-fix.css"></head>#' www/index.html
           npm install @capacitor/core@^7 @capacitor/cli@^7 @capacitor/android@^7
 
       - name: Configure Capacitor Android
