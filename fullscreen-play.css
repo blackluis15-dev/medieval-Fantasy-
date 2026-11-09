@@ -1,0 +1,30 @@
+/* Medieval Fantasy: mundo a pantalla completa con HUD flotante. */
+html,body{width:100%;height:100%;height:100dvh;overflow:hidden}
+#game-wrap{position:relative;width:100%;height:100%;height:100dvh;overflow:hidden}
+#stage{position:absolute;inset:0;width:100%;height:100%;display:block;min-height:0;background:#17231b}
+#game{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;image-rendering:pixelated}
+header{position:absolute;z-index:6;top:0;left:0;right:0;height:34px;padding:0 12px;background:linear-gradient(180deg,rgba(17,29,21,.78),rgba(17,29,21,.20));border:0;font-size:12px;text-shadow:0 1px 3px #000}
+#hint{font-size:10px}
+#hud{position:absolute;z-index:7;left:0;right:0;bottom:0;height:88px;display:flex;align-items:center;justify-content:space-between;padding:4px 10px 7px;gap:8px;background:linear-gradient(0deg,rgba(15,27,19,.78),rgba(15,27,19,.12));border:0}
+#hud>div:nth-child(2){padding:5px 7px;border-radius:6px;background:rgba(17,28,20,.55);text-shadow:0 1px 3px #000}
+.pad{grid-template-columns:34px 34px 34px;grid-template-rows:26px 26px 26px;gap:2px}
+.key{background:rgba(64,84,59,.88)}
+.action{width:48px;height:48px;background:rgba(64,84,59,.9);font-size:10px}
+.action small{font-size:8px}
+.actions{gap:5px}
+footer{display:none}
+#sky-status{top:42px;right:10px;background:rgba(17,30,23,.82)}
+#toast{top:42px}
+@media(min-width:700px){
+ #hud{height:100px;padding-left:18px;padding-right:18px}
+ .pad{transform:scale(1.12);transform-origin:left bottom}
+ .action{width:58px;height:58px}
+ .action small{font-size:9px}
+}
+@media(max-height:420px){
+ header{height:27px;font-size:10px}
+ #hud{height:76px;padding:3px 8px 5px}
+ .pad{grid-template-columns:30px 30px 30px;grid-template-rows:23px 23px 23px}
+ .action{width:43px;height:43px}
+ #sky-status{top:32px}
+}
