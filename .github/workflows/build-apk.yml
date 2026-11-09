@@ -67,8 +67,8 @@ jobs:
           s = s.replace(anchor, rain_code + anchor, 1)
           anchor2 = " const music=createMusicPlayer({"
           if anchor2 not in s: raise SystemExit("No se encontró el reproductor de música.")
-          s = s.replace(anchor2, " const rainAmbience=createRainAmbience();\\n" + anchor2, 1)
-          s = s.replace("   worldClock.minutes+=dt/worldClock.secondsPerGameMinute;", "   worldClock.minutes+=dt/worldClock.secondsPerGameMinute;\\n   rainAmbience.set(weather==='rain' && !currentBuilding);")
+          s = s.replace(anchor2, " const rainAmbience=createRainAmbience();" + chr(10) + anchor2, 1)
+          s = s.replace("   worldClock.minutes+=dt/worldClock.secondsPerGameMinute;", "   worldClock.minutes+=dt/worldClock.secondsPerGameMinute;" + chr(10) + "   rainAmbience.set(weather==='rain' && !currentBuilding);")
           s = s.replace("   gameStarted=true;mainMenu.classList.add('hidden');music.start(musicPeriod());say('¡Tu aventura comienza!');", "   gameStarted=true;mainMenu.classList.add('hidden');music.start(musicPeriod());rainAmbience.resume();rainAmbience.set(weather==='rain');say('¡Tu aventura comienza!');")
           main.write_text(s)
           world = root / "js/world/world-map.js"
