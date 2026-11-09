@@ -34,6 +34,17 @@ jobs:
           test -f Medieval_Fantasy_1_1_horizontal_base.zip
           unzip -q Medieval_Fantasy_1_1_horizontal_base.zip -d source
           test -f source/Medieval_Fantasy/index.html
+          # Ampliar el mundo antes de preparar la compilación.
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("source/Medieval_Fantasy/js/main.js")
+          s = p.read_text()
+          old = "const W=480,H=320,T=16, mapW=60,mapH=45;"
+          new = "const W=480,H=320,T=16, mapW=80,mapH=60;"
+          if old not in s:
+              raise SystemExit("No se encontró la configuración original del tamaño del mapa.")
+          p.write_text(s.replace(old,new,1))
+          PY
           # Reparar inicio táctil y posición inicial del protagonista.
           python3 - <<'PY'
           from pathlib import Path
@@ -111,7 +122,8 @@ jobs:
           cp index.html manifest.webmanifest service-worker.js www/
           cp -R css js assets www/
           cp ../../menu-landscape-fix.css www/css/menu-landscape-fix.css
-          sed -i 's#</head>#<link rel="stylesheet" href="css/menu-landscape-fix.css"></head>#' www/index.html
+          cp ../../fullscreen-play.css www/css/fullscreen-play.css
+          sed -i 's#</head>#<link rel="stylesheet" href="css/menu-landscape-fix.css"><link rel="stylesheet" href="css/fullscreen-play.css"></head>#' www/index.html
           npm install @capacitor/core@^7 @capacitor/cli@^7 @capacitor/android@^7
 
       - name: Inspect menu layout selectors
