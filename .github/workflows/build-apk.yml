@@ -226,7 +226,7 @@ jobs:
                   name_found = True
           if not code_found or not name_found:
               raise SystemExit("No se encontraron versionCode y versionName en build.gradle")
-          p.write_text("\\n".join(lines) + "\\n")
+          p.write_text(chr(10).join(lines) + chr(10))
           print("Versión Android configurada: versionCode=2, versionName=1.1")
           PY
           python3 - <<'PY'
