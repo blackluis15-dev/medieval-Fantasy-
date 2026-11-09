@@ -34,53 +34,6 @@ jobs:
           test -f Medieval_Fantasy_1_1_horizontal_base.zip
           unzip -q Medieval_Fantasy_1_1_horizontal_base.zip -d source
           test -f source/Medieval_Fantasy/index.html
-          # Ampliar el mundo antes de preparar la compilación.
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path("source/Medieval_Fantasy/js/main.js")
-          s = p.read_text()
-          old = "const W=480,H=320,T=16, mapW=60,mapH=45;"
-          new = "const W=480,H=320,T=16, mapW=80,mapH=60;"
-          if old not in s:
-              raise SystemExit("No se encontró la configuración original del tamaño del mapa.")
-          p.write_text(s.replace(old,new,1))
-          PY
-          # Ampliar el pueblo con nuevos barrios al norte y sur del río.
-          python3 - <<'PY'
-          from pathlib import Path
-          root = Path("source/Medieval_Fantasy")
-          p = root / "js/world/world-map.js"
-          s = p.read_text()
-          marker = "  const obstacles=buildings.map(b=>"
-          addition = """  buildings.push(
-            {x:6,y:29,w:7,h:5,name:'Casa del molinero',roof:'#79503a',wall:'#c6ad82',style:'cottage'},
-            {x:30,y:29,w:8,h:6,name:'Almacén del pueblo',roof:'#654331',wall:'#bca77e',style:'shop'},
-            {x:51,y:30,w:7,h:5,name:'Casa del guardabosques',roof:'#704735',wall:'#c9b58c',style:'cottage'},
-            {x:8,y:44,w:8,h:6,name:'Posada del camino',roof:'#684431',wall:'#d1bd91',style:'inn'},
-            {x:31,y:45,w:7,h:5,name:'Casa de artesanos',roof:'#874536',wall:'#c9ad79',style:'cottage'},
-            {x:55,y:44,w:8,h:6,name:'Almacén del este',roof:'#4d6170',wall:'#cdbb91',style:'shop'}
-          );
-
-          """
-          if marker not in s:
-              raise SystemExit("No se encontró el punto de inserción de edificios.")
-          p.write_text(s.replace(marker, addition + marker, 1))
-          # Ordenar árboles y edificios por profundidad para que el mundo tenga capas.
-          p = root / "js/core/renderer.js"
-          s = p.read_text()
-          old = """    buildings.forEach(drawBuilding);
-              trees.forEach(drawTree);"""
-          new = """    const depthObjects = [
-              ...buildings.map(b=>({depth:(b.y+b.h)*T,draw:()=>drawBuilding(b)})),
-              ...trees.map(t=>({depth:t.y,draw:()=>drawTree(t)}))
-            ].sort((a,b)=>a.depth-b.depth);
-            depthObjects.forEach(o=>o.draw());"""
-          if old not in s:
-              raise SystemExit("No se encontró el orden de dibujo esperado.")
-          p.write_text(s.replace(old, new, 1))
-          PY
-          node --check source/Medieval_Fantasy/js/world/world-map.js
-          node --check source/Medieval_Fantasy/js/core/renderer.js
           # Gran expansión del mapa y ambiente sonoro de lluvia.
           python3 - <<'PY'
           from pathlib import Path
