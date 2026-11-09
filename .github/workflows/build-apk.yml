@@ -68,7 +68,44 @@ jobs:
           s = s[:start_at] + chr(10).join(new_lines) + s[end_at:]
           p.write_text(s)
           PY
+          # Corregir la altura del mapa que necesita el renderizador.
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path("source/Medieval_Fantasy")
+          renderer = root / "js/core/renderer.js"
+          rs = renderer.read_text()
+          old = "createRenderer({ctx,W,H,T,mapW,cam,river,worldClock,buildings,trees,vegetation=[]})"
+          new = "createRenderer({ctx,W,H,T,mapW,mapH,cam,river,worldClock,buildings,trees,vegetation=[]})"
+          if old not in rs:
+              raise SystemExit("No se encontró la firma esperada de createRenderer.")
+          renderer.write_text(rs.replace(old, new, 1))
+          main = root / "js/main.js"
+          ms = main.read_text()
+          old_call = "createRenderer({ctx,W,H,T,mapW,cam,river,worldClock,buildings,trees,vegetation:map.vegetation})"
+          new_call = "createRenderer({ctx,W,H,T,mapW,mapH,cam,river,worldClock,buildings,trees,vegetation:map.vegetation})"
+          if old_call not in ms:
+              raise SystemExit("No se encontró la llamada esperada a createRenderer.")
+          main.write_text(ms.replace(old_call, new_call, 1))
+          loop = root / "js/core/game-loop.js"
+          loop.write_text("""// Bucle principal: programa siempre el siguiente frame y registra errores.
+          export function startGameLoop(update,render){
+            let last=0;
+            function frame(timestamp){
+              requestAnimationFrame(frame);
+              const dt=Math.min((timestamp-last)/1000||0,0.04);
+              last=timestamp;
+              try { update(dt); }
+              catch(error) { console.error('Error en update() del juego:',error); }
+              try { render(dt); }
+              catch(error) { console.error('Error en render() del juego:',error); }
+            }
+            requestAnimationFrame(frame);
+          }
+          """)
+          PY
           node --check source/Medieval_Fantasy/js/main.js
+          node --check source/Medieval_Fantasy/js/core/renderer.js
+          node --check source/Medieval_Fantasy/js/core/game-loop.js
           cd source/Medieval_Fantasy
           mkdir www
           cp index.html manifest.webmanifest service-worker.js www/
