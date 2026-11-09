@@ -44,7 +44,11 @@ jobs:
               "const player={x:20*T,y:26*T,w:12,h:13,speed:88,dir:'down',moving:false};",
               1
           )
-          old_start = " document.getElementById('start-game').addEventListener('click',()=>{\\n   gameStarted=true;mainMenu.classList.add('hidden');music.start(musicPeriod());say('¡Tu aventura comienza!');\\n });"
+          start_marker = " document.getElementById('start-game').addEventListener('click',()=>{"
+          start_at = s.find(start_marker)
+          end_at = s.find(" });", start_at) + len(" });") if start_at >= 0 else -1
+          if start_at < 0 or end_at < 0:
+              raise SystemExit("No se encontró el controlador original de JUGAR; no se aplicó el parche.")
           new_lines = [
               " const startGame=()=>{",
               "   if(gameStarted)return;",
@@ -61,10 +65,7 @@ jobs:
               " startButton.addEventListener('pointerdown',startGame,{passive:true});",
               " startButton.addEventListener('click',startGame);"
           ]
-          new_start = "\\n".join(new_lines)
-          if old_start not in s:
-              raise SystemExit("No se encontró el controlador original de JUGAR; no se aplicó el parche.")
-          s = s.replace(old_start, new_start, 1)
+          s = s[:start_at] + chr(10).join(new_lines) + s[end_at:]
           p.write_text(s)
           PY
           node --check source/Medieval_Fantasy/js/main.js
