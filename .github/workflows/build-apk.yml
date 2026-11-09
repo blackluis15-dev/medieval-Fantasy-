@@ -81,6 +81,74 @@ jobs:
           PY
           node --check source/Medieval_Fantasy/js/world/world-map.js
           node --check source/Medieval_Fantasy/js/core/renderer.js
+          # Gran expansión del mapa y ambiente sonoro de lluvia.
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path("source/Medieval_Fantasy")
+          main = root / "js/main.js"
+          s = main.read_text()
+          old = "const W=480,H=320,T=16, mapW=60,mapH=45;"
+          new = "const W=480,H=320,T=16, mapW=120,mapH=90;"
+          if old not in s:
+              raise SystemExit("No se encontró la configuración base del mapa.")
+          s = s.replace(old,new,1)
+          rain_code = '''
+          // Ambiente de lluvia procedural: no requiere archivos externos.
+          function createRainAmbience(){
+            const AudioCtx=window.AudioContext||window.webkitAudioContext;
+            if(!AudioCtx)return {set(){},resume(){}};
+            const ac=new AudioCtx();
+            const buffer=ac.createBuffer(1,ac.sampleRate*3,ac.sampleRate);
+            const data=buffer.getChannelData(0);
+            let seed=7411;
+            for(let i=0;i<data.length;i++){seed=(seed*16807)%2147483647;data[i]=(seed/1073741823.5-1)*0.32;}
+            const source=ac.createBufferSource();source.buffer=buffer;source.loop=true;
+            const filter=ac.createBiquadFilter();filter.type='lowpass';filter.frequency.value=1450;
+            const gain=ac.createGain();gain.gain.value=0;
+            source.connect(filter);filter.connect(gain);gain.connect(ac.destination);source.start();
+            return {set(on){if(ac.state==='suspended')ac.resume().catch(()=>{});gain.gain.setTargetAtTime(on?0.20:0,ac.currentTime,0.8);},resume(){if(ac.state==='suspended')ac.resume().catch(()=>{});}};
+          }
+          '''
+          anchor = " function rect(x,y,w,h,c){"
+          if anchor not in s: raise SystemExit("No se encontró el punto de inserción del audio.")
+          s = s.replace(anchor, rain_code + anchor, 1)
+          anchor2 = " const music=createMusicPlayer({"
+          if anchor2 not in s: raise SystemExit("No se encontró el reproductor de música.")
+          s = s.replace(anchor2, " const rainAmbience=createRainAmbience();\\n" + anchor2, 1)
+          s = s.replace("   worldClock.minutes+=dt/worldClock.secondsPerGameMinute;", "   worldClock.minutes+=dt/worldClock.secondsPerGameMinute;\\n   rainAmbience.set(weather==='rain' && !currentBuilding);")
+          s = s.replace("   gameStarted=true;mainMenu.classList.add('hidden');music.start(musicPeriod());say('¡Tu aventura comienza!');", "   gameStarted=true;mainMenu.classList.add('hidden');music.start(musicPeriod());rainAmbience.resume();rainAmbience.set(weather==='rain');say('¡Tu aventura comienza!');")
+          main.write_text(s)
+          world = root / "js/world/world-map.js"
+          w = world.read_text()
+          insert = """  // Barrios adicionales: gran pueblo extendido al este y oeste.
+          buildings.push(
+            {x:5,y:30,w:7,h:5,name:'Casa del molinero',roof:'#79503a',wall:'#c6ad82',style:'cottage'},
+            {x:18,y:29,w:8,h:6,name:'Almacén del pueblo',roof:'#654331',wall:'#bca77e',style:'shop'},
+            {x:32,y:30,w:7,h:5,name:'Casa del guardabosques',roof:'#704735',wall:'#c9b58c',style:'cottage'},
+            {x:48,y:29,w:8,h:6,name:'Posada del camino',roof:'#684431',wall:'#d1bd91',style:'inn'},
+            {x:65,y:31,w:7,h:5,name:'Casa de artesanos',roof:'#874536',wall:'#c9ad79',style:'cottage'},
+            {x:82,y:29,w:8,h:6,name:'Almacén del este',roof:'#4d6170',wall:'#cdbb91',style:'shop'},
+            {x:99,y:31,w:7,h:5,name:'Casa del puente viejo',roof:'#79503a',wall:'#c6ad82',style:'cottage'},
+            {x:9,y:48,w:8,h:6,name:'Taller del herrero',roof:'#514b50',wall:'#a99b86',style:'shop'},
+            {x:26,y:50,w:7,h:5,name:'Casa de la tejedora',roof:'#874536',wall:'#c9ad79',style:'cottage'},
+            {x:44,y:48,w:8,h:6,name:'Granero comunal',roof:'#76513b',wall:'#c4b18a',style:'shop'},
+            {x:62,y:51,w:7,h:5,name:'Casa del viajero',roof:'#4d6170',wall:'#cdbb91',style:'cottage'},
+            {x:80,y:49,w:8,h:6,name:'Mercado del este',roof:'#874536',wall:'#d1bd91',style:'shop'},
+            {x:101,y:50,w:7,h:5,name:'Casa del jardinero',roof:'#654331',wall:'#c6ad82',style:'cottage'},
+            {x:14,y:68,w:8,h:6,name:'Posada del bosque',roof:'#684431',wall:'#d1bd91',style:'inn'},
+            {x:35,y:70,w:7,h:5,name:'Casa de los leñadores',roof:'#79503a',wall:'#c6ad82',style:'cottage'},
+            {x:57,y:67,w:8,h:6,name:'Almacén del sur',roof:'#4d6170',wall:'#cdbb91',style:'shop'},
+            {x:78,y:70,w:7,h:5,name:'Casa del río',roof:'#874536',wall:'#c9ad79',style:'cottage'},
+            {x:99,y:68,w:8,h:6,name:'Taller de carpintería',roof:'#654331',wall:'#c6ad82',style:'shop'}
+          );
+          """
+          marker2 = "  const obstacles=buildings.map"
+          if marker2 not in w: raise SystemExit("No se encontró el punto de inserción de edificios.")
+          w = w.replace(marker2, insert + marker2, 1)
+          world.write_text(w)
+          PY
+          node --check source/Medieval_Fantasy/js/main.js
+          node --check source/Medieval_Fantasy/js/world/world-map.js
           # Reparar inicio táctil y posición inicial del protagonista.
           python3 - <<'PY'
           from pathlib import Path
