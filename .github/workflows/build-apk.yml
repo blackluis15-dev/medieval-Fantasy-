@@ -240,3 +240,5 @@ jobs:
           name: Medieval-Fantasy-APK
           path: source/Medieval_Fantasy/android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
+# Diagnóstico: nueva ejecución para verificar el servicio de GitHub Actions.
