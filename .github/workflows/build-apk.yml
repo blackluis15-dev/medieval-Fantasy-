@@ -219,6 +219,19 @@ jobs:
         run: |
           npx cap init "Medieval Fantasy" com.blackluis15.medievalfantasy --web-dir www
           npx cap add android
+          # Publicar esta compilación como versión 1.1 de Android.
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path("android/app/build.gradle")
+          s = p.read_text()
+          s, code_count = re.subn(r'(?m)^(\\s*versionCode\\s+)\\d+', r'\\g<1>2', s, count=1)
+          s, name_count = re.subn(r'(?m)^(\\s*versionName\\s+)[\\"\\']([^\\"\\']+)[\\"\\']', r'\\g<1>"1.1"', s, count=1)
+          if code_count != 1 or name_count != 1:
+              raise SystemExit("No se pudieron fijar versionCode 2 y versionName 1.1 en Android.")
+          p.write_text(s)
+          print("Versión Android configurada: versionCode=2, versionName=1.1")
+          PY
           python3 - <<'PY'
           from pathlib import Path
           p = Path("android/app/src/main/AndroidManifest.xml")
