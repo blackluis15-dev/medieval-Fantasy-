@@ -168,6 +168,8 @@ jobs:
               " const startGame=()=>{",
               "   if(gameStarted)return;",
               "   gameStarted=true;",
+              "   rainAmbience.resume();",
+              "   rainAmbience.set(weather==='rain');",
               "   cam.x=Math.max(0,Math.min(mapW*T-W,player.x-W/2));",
               "   cam.y=Math.max(0,Math.min(mapH*T-H,player.y-H/2));",
               "   mainMenu.classList.add('hidden');",
