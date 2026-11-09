@@ -211,14 +211,22 @@ jobs:
           # Publicar esta compilación como versión 1.1 de Android.
           python3 - <<'PY'
           from pathlib import Path
-          import re
           p = Path("android/app/build.gradle")
-          s = p.read_text()
-          s, code_count = re.subn(r'(?m)^(\s*versionCode\s+)\d+', r'\g<1>2', s, count=1)
-          s, name_count = re.subn(r'(?m)^(\s*versionName\s+)[\\"\\']([^\\"\\']+)[\\"\\']', r'\g<1>"1.1"', s, count=1)
-          if code_count != 1 or name_count != 1:
-              raise SystemExit("No se pudieron fijar versionCode 2 y versionName 1.1 en Android.")
-          p.write_text(s)
+          lines = p.read_text().splitlines()
+          code_found = False
+          name_found = False
+          for i, line in enumerate(lines):
+              stripped = line.strip()
+              indent = line[:len(line) - len(line.lstrip())]
+              if stripped.startswith("versionCode "):
+                  lines[i] = indent + "versionCode 2"
+                  code_found = True
+              elif stripped.startswith("versionName "):
+                  lines[i] = indent + 'versionName "1.1"'
+                  name_found = True
+          if not code_found or not name_found:
+              raise SystemExit("No se encontraron versionCode y versionName en build.gradle")
+          p.write_text("\\n".join(lines) + "\\n")
           print("Versión Android configurada: versionCode=2, versionName=1.1")
           PY
           python3 - <<'PY'
