@@ -100,6 +100,56 @@ jobs:
           w = w.replace(marker2, insert + marker2, 1)
           world.write_text(w)
           PY
+          # Intro de Emine Entertainment: pantalla de marca con entrada y salida suaves.
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path("source/Medieval_Fantasy")
+          intro_html = r"""
+          <div id="emine-splash" aria-label="Emine Entertainment">
+            <svg class="emine-mark" viewBox="0 0 760 360" role="img" aria-label="Emine Entertainment">
+              <g fill="#050505">
+                <path d="M330 20h100l-100 55V50l65-30z"/>
+                <path d="M330 78l100-55v30l-100 55z"/>
+                <path d="M330 136l100-55v30l-100 55z"/>
+                <path d="M330 194l100-55v30l-100 55z"/>
+              </g>
+              <text x="380" y="270" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="112" font-weight="400" fill="#050505" letter-spacing="-4">Emine</text>
+              <text x="380" y="328" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="36" font-weight="300" fill="#777" letter-spacing="13">entertainment</text>
+            </svg>
+          </div>
+          """
+          css = r"""
+          #emine-splash{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:#fff;opacity:0;visibility:visible;pointer-events:all;transition:opacity 1s ease}
+          #emine-splash.emine-show{opacity:1}
+          #emine-splash.emine-hide{opacity:0;pointer-events:none}
+          #emine-splash .emine-mark{width:min(78vw,760px);max-height:68vh;height:auto}
+          @media(prefers-reduced-motion:reduce){#emine-splash{transition:none}}
+          """
+          js = r"""
+          (() => {
+            const start = () => {
+              const splash = document.getElementById('emine-splash');
+              if (!splash) return;
+              requestAnimationFrame(() => splash.classList.add('emine-show'));
+              window.setTimeout(() => {
+                splash.classList.remove('emine-show');
+                splash.classList.add('emine-hide');
+                window.setTimeout(() => splash.remove(), 1100);
+              }, 2600);
+            };
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, {once:true});
+            else start();
+          })();
+          """
+          p = root / "index.html"
+          html = p.read_text()
+          if 'id="emine-splash"' not in html:
+              html = html.replace("</body>", intro_html + '<link rel="stylesheet" href="css/emine-intro.css"><script src="js/emine-intro.js" defer></script></body>', 1)
+          p.write_text(html)
+          (root / "css" / "emine-intro.css").write_text(css)
+          (root / "js" / "emine-intro.js").write_text(js)
+          print("Intro Emine Entertainment instalada.")
+          PY
           # Inspeccionar las texturas disponibles sin detener la compilación si el ZIP usa otra estructura.
           python3 - <<'PY'
           from pathlib import Path
@@ -208,7 +258,7 @@ jobs:
         run: |
           npx cap init "Medieval Fantasy" com.blackluis15.medievalfantasy --web-dir www
           npx cap add android
-          # Publicar esta compilación como versión 1.1 de Android.
+          # Publicar esta compilación como versión 1.2 de Android.
           python3 - <<'PY'
           from pathlib import Path
           p = Path("android/app/build.gradle")
@@ -219,15 +269,15 @@ jobs:
               stripped = line.strip()
               indent = line[:len(line) - len(line.lstrip())]
               if stripped.startswith("versionCode "):
-                  lines[i] = indent + "versionCode 2"
+                  lines[i] = indent + "versionCode 3"
                   code_found = True
               elif stripped.startswith("versionName "):
-                  lines[i] = indent + 'versionName "1.1"'
+                  lines[i] = indent + 'versionName "1.2"'
                   name_found = True
           if not code_found or not name_found:
               raise SystemExit("No se encontraron versionCode y versionName en build.gradle")
           p.write_text(chr(10).join(lines) + chr(10))
-          print("Versión Android configurada: versionCode=2, versionName=1.1")
+          print("Versión Android configurada: versionCode=3, versionName=1.2")
           PY
           python3 - <<'PY'
           from pathlib import Path
