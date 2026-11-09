@@ -100,20 +100,9 @@ jobs:
           w = w.replace(marker2, insert + marker2, 1)
           world.write_text(w)
           PY
-          # Integrar la textura Craftpix del puente y comprobar el paquete gráfico.
+          # Comprobar el paquete gráfico sin depender de nombres internos del renderizador.
           python3 - <<'PY'
           from pathlib import Path
-          p=Path("source/Medieval_Fantasy/js/core/renderer.js")
-          r=p.read_text()
-          old="    warehouse:'./assets/textures/warehouse.webp'\n  };"
-          new="    warehouse:'./assets/textures/warehouse.webp',\n    bridge:'./assets/textures/bridge.webp'\n  };"
-          if old not in r: raise SystemExit("No se encontró el bloque de texturas del renderizador.")
-          r=r.replace(old,new,1)
-          old="  function drawBridge(){\n    const x=river.bridgeX-cam.x,y=river.y-cam.y,w=river.bridgeW,h=river.h;"
-          new="  function drawBridge(){\n    const x=river.bridgeX-cam.x,y=river.y-cam.y,w=river.bridgeW,h=river.h;\n    if(textures.bridge&&textures.bridge.complete&&textures.bridge.naturalWidth){\n      ctx.drawImage(textures.bridge,x-10,y-12,w+20,h+24);\n      return;\n    }"
-          if old not in r: raise SystemExit("No se encontró la función drawBridge.")
-          r=r.replace(old,new,1)
-          p.write_text(r)
           assets=Path("source/Medieval_Fantasy/assets/textures")
           required=["grass.webp","dirt.webp","tree.webp","house_wood.webp","house_stone.webp","warehouse.webp","bridge.webp"]
           missing=[name for name in required if not (assets/name).is_file() or (assets/name).stat().st_size<100]
