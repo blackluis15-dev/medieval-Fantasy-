@@ -34,6 +34,41 @@ jobs:
           test -f Medieval_Fantasy_1_1_horizontal_base.zip
           unzip -q Medieval_Fantasy_1_1_horizontal_base.zip -d source
           test -f source/Medieval_Fantasy/index.html
+          # Fix robust mobile start: pointerdown handles Android touch immediately;
+          # click remains as keyboard/mouse fallback. Place Zerbb inside the initial camera view.
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("source/Medieval_Fantasy/js/main.js")
+          s = p.read_text()
+          old_spawn = "const player={x:15*T,y:19*T,w:12,h:13,speed:88,dir:'down',moving:false};"
+          new_spawn = "const player={x:20*T,y:26*T,w:12,h:13,speed:88,dir:'down',moving:false};"
+          if old_spawn in s:
+              s = s.replace(old_spawn, new_spawn, 1)
+          old_start = """ document.getElementById('start-game').addEventListener('click',()=>{
+   gameStarted=true;mainMenu.classList.add('hidden');music.start(musicPeriod());say('¡Tu aventura comienza!');
+ });"""
+          new_start = """ const startGame=()=>{
+   if(gameStarted)return;
+   gameStarted=true;
+   // Centrar la cámara desde el primer fotograma para que Zerbb aparezca visible.
+   cam.x=Math.max(0,Math.min(mapW*T-W,player.x-W/2));
+   cam.y=Math.max(0,Math.min(mapH*T-H,player.y-H/2));
+   mainMenu.classList.add('hidden');
+   mainMenu.setAttribute('aria-hidden','true');
+   try { music.start(musicPeriod()); }
+   catch(error) { console.warn('No se pudo iniciar la música:',error); }
+   say('¡Tu aventura comienza!');
+ };
+ const startButton=document.getElementById('start-game');
+ // En Android el inicio responde al primer toque, sin depender de la síntesis de click.
+ startButton.addEventListener('pointerdown',startGame,{passive:true});
+ startButton.addEventListener('click',startGame);"""
+          if old_start not in s:
+              raise SystemExit("No se encontró el controlador original de JUGAR; se cancela el parche.")
+          s = s.replace(old_start, new_start, 1)
+          p.write_text(s)
+          PY
+          node --check source/Medieval_Fantasy/js/main.js
           cd source/Medieval_Fantasy
           mkdir www
           cp index.html manifest.webmanifest service-worker.js www/
