@@ -421,7 +421,7 @@ jobs:
           window.addEventListener('freeze',saveGameAutomatically);
           """
               # Este punto existe después de los cambios de pausa en el código fuente.
-              needle="          pauseButton.addEventListener('click',()=>setPaused(!gamePaused));"
+              needle="pauseButton.addEventListener('click',()=>setPaused(!gamePaused));"
               if needle not in s:
                   raise SystemExit("No se encontró el controlador del botón de pausa.")
               s=s.replace(needle,js+"\n"+needle,1)
