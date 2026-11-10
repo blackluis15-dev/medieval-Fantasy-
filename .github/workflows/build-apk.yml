@@ -506,6 +506,64 @@ jobs:
           PY
           echo 'Menú 1.5: ilustración, fuente pixel y HUD oculto al inicio aplicados.'
 
+      - name: Fix menu transition and replace low-resolution background
+        working-directory: source/Medieval_Fantasy
+        run: |
+          set -e
+          mkdir -p www/assets/images/menu
+          cat > www/assets/images/menu/medieval-fantasy-menu.svg <<'SVG'
+          <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" shape-rendering="crispEdges">
+            <defs>
+              <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#071b49"/><stop offset=".55" stop-color="#173d78"/><stop offset="1" stop-color="#172c36"/></linearGradient>
+              <linearGradient id="water" x2="0" y2="1"><stop stop-color="#397a9a"/><stop offset="1" stop-color="#101f35"/></linearGradient>
+              <linearGradient id="light" x2="0" y2="1"><stop stop-color="#ffe8a0"/><stop offset="1" stop-color="#c97836"/></linearGradient>
+            </defs>
+            <rect width="1600" height="900" fill="url(#sky)"/>
+            <rect x="0" y="0" width="1600" height="900" fill="#061328" opacity=".12"/>
+            <circle cx="790" cy="142" r="92" fill="#e8e7c8"/><circle cx="790" cy="142" r="78" fill="#f6efc9"/>
+            <g fill="#d5d7c1" opacity=".8"><rect x="745" y="78" width="24" height="12"/><rect x="810" y="103" width="18" height="12"/><rect x="770" y="154" width="26" height="15"/><rect x="832" y="172" width="14" height="10"/></g>
+            <g fill="#203d69"><path d="M0 430L160 260 285 375 440 230 620 420 760 280 920 430 1090 250 1260 410 1420 270 1600 430V650H0Z"/></g>
+            <g fill="#31547b"><path d="M0 500L170 340 300 465 490 315 660 500 830 350 1010 505 1180 330 1370 480 1510 350 1600 430V690H0Z"/></g>
+            <g fill="#101f34"><path d="M0 530L170 410 310 530 470 400 640 560 820 420 1010 560 1200 410 1380 555 1540 425 1600 465V760H0Z"/></g>
+            <g fill="#173b32"><path d="M0 510L190 420 330 510 500 420 650 560 820 440 980 555 1160 420 1330 540 1500 425 1600 480V900H0Z"/></g>
+            <g fill="#214d37"><path d="M0 620L180 530 340 640 500 520 690 660 860 530 1040 650 1210 520 1400 650 1600 540V900H0Z"/></g>
+            <!-- castle on the high ridge -->
+            <path d="M850 410L970 270 1110 250 1250 300 1370 440 1440 505H790Z" fill="#263b40"/>
+            <g fill="#68717a" stroke="#242b35" stroke-width="8">
+              <rect x="1010" y="170" width="250" height="260"/><rect x="960" y="245" width="90" height="190"/><rect x="1220" y="220" width="90" height="215"/>
+              <rect x="1070" y="110" width="75" height="150"/><rect x="1190" y="140" width="65" height="130"/>
+              <path d="M1000 175L1055 95 1110 175Z"/><path d="M1060 115L1107 35 1155 115Z"/><path d="M1180 145L1222 75 1265 145Z"/><path d="M1210 230L1265 155 1320 230Z"/>
+            </g>
+            <g fill="url(#light)"><rect x="1040" y="230" width="28" height="42"/><rect x="1110" y="230" width="28" height="42"/><rect x="1180" y="230" width="28" height="42"/><rect x="1087" y="145" width="20" height="32"/><rect x="1210" y="170" width="18" height="28"/><rect x="1000" y="290" width="18" height="32"/><rect x="1260" y="285" width="18" height="32"/></g>
+            <path d="M1130 35V-10" stroke="#d8c69a" stroke-width="8"/><path d="M1138 0L1200 18 1138 38Z" fill="#a92d36"/>
+            <!-- village houses -->
+            <g stroke="#1a2027" stroke-width="9">
+              <path d="M1130 570L1220 450 1320 570V725H1130Z" fill="#79523b"/><path d="M1105 575L1220 425 1345 575Z" fill="#263b52"/>
+              <path d="M1300 610L1400 475 1510 610V780H1300Z" fill="#81553a"/><path d="M1275 615L1400 445 1535 615Z" fill="#26344a"/>
+              <path d="M870 610L950 500 1040 610V740H870Z" fill="#80543a"/><path d="M845 610L950 480 1065 610Z" fill="#283c50"/>
+              <path d="M680 650L755 550 840 650V770H680Z" fill="#81573a"/><path d="M660 650L755 530 860 650Z" fill="#2b3c54"/>
+            </g>
+            <g fill="#ffd27c"><rect x="1180" y="590" width="35" height="50"/><rect x="1260" y="590" width="35" height="50"/><rect x="1350" y="640" width="38" height="54"/><rect x="1440" y="640" width="38" height="54"/><rect x="915" y="620" width="30" height="42"/><rect x="990" y="620" width="30" height="42"/><rect x="720" y="660" width="28" height="38"/><rect x="790" y="660" width="28" height="38"/></g>
+            <g fill="#122a22"><path d="M0 220L90 110 180 220V520H0Z"/><path d="M0 100L80 20 170 115 250 180 180 245 70 205Z"/><path d="M1430 220L1510 95 1600 210V580H1430Z"/><path d="M1370 160L1480 40 1600 140 1540 250 1430 230Z"/></g>
+            <!-- river and bridge -->
+            <path d="M0 770Q300 710 520 780T930 760T1280 800T1600 740V900H0Z" fill="url(#water)"/>
+            <path d="M0 790Q300 730 520 800T930 780T1280 820T1600 760" fill="none" stroke="#80c5d4" stroke-width="10" opacity=".6"/>
+            <path d="M720 790Q850 675 1000 790" fill="none" stroke="#c2a17a" stroke-width="36"/><path d="M720 790Q850 675 1000 790" fill="none" stroke="#544335" stroke-width="14"/>
+            <g fill="#f3cf79"><rect x="260" y="810" width="55" height="7"/><rect x="390" y="845" width="75" height="6"/><rect x="1120" y="825" width="70" height="6"/><rect x="1380" y="790" width="50" height="6"/></g>
+            <!-- flowers and fireflies -->
+            <g fill="#4d8b43"><rect x="90" y="720" width="22" height="70"/><rect x="145" y="750" width="20" height="55"/><rect x="530" y="735" width="24" height="75"/><rect x="590" y="760" width="20" height="50"/><rect x="1050" y="745" width="20" height="70"/></g>
+            <g fill="#e8b9dc"><rect x="80" y="700" width="20" height="20"/><rect x="120" y="730" width="20" height="20"/><rect x="520" y="710" width="20" height="20"/><rect x="575" y="740" width="20" height="20"/></g>
+            <g fill="#ffe17c"><circle cx="220" cy="620" r="7"/><circle cx="400" cy="680" r="6"/><circle cx="580" cy="585" r="6"/><circle cx="690" cy="730" r="7"/><circle cx="1060" cy="540" r="6"/><circle cx="1510" cy="680" r="7"/><circle cx="360" cy="520" r="5"/></g>
+            <g fill="#f7e8a5" opacity=".9"><circle cx="180" cy="350" r="4"/><circle cx="520" cy="180" r="4"/><circle cx="650" cy="260" r="3"/><circle cx="920" cy="160" r="4"/><circle cx="1460" cy="320" r="4"/></g>
+          </svg>
+          SVG
+          cat >> www/css/menu-v15-final.css <<'CSS'
+          /* Fix 1.5.1: no permitir que el menú cubra el mundo después de JUGAR. */
+          #main-menu.hidden{display:none!important;visibility:hidden!important;pointer-events:none!important}
+          #main-menu:not(.hidden){display:flex!important;visibility:visible!important;pointer-events:auto!important}
+          #main-menu{background-image:linear-gradient(90deg,rgba(5,12,9,.76) 0%,rgba(5,12,9,.42) 42%,rgba(5,12,9,.06) 100%),linear-gradient(0deg,rgba(4,10,7,.24),transparent 60%),url('../assets/images/menu/medieval-fantasy-menu.svg')!important;background-position:center!important;background-size:cover!important;background-repeat:no-repeat!important}
+          CSS
+          echo 'Menú: transición a partida reparada; fondo SVG vectorial 1600x900 instalado.'
       - name: Configure Capacitor Android
         working-directory: source/Medieval_Fantasy
         run: |
