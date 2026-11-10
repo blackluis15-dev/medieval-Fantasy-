@@ -450,6 +450,7 @@ jobs:
           sed -i 's#</head>#<link rel="stylesheet" href="css/menu-landscape-fix.css"><link rel="stylesheet" href="css/fullscreen-play.css"></head>#' www/index.html
           npm install @capacitor/core@^7 @capacitor/cli@^7 @capacitor/android@^7
 
+      # Rebuild trigger: the tree and house sprite atlases are now part of the APK.
       - name: Apply supplied tree and house texture atlases
         working-directory: source/Medieval_Fantasy
         run: |
