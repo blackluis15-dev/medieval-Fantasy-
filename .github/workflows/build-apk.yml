@@ -253,6 +253,16 @@ jobs:
           echo '--- MENU CSS ---'
           grep -RniE 'main-menu|menu-card|menu-buttons|game-logo|menu-emblem|menu-btn|menu-note' css | head -160 || true
 
+      - name: Inspect game menu and update structure
+        working-directory: source/Medieval_Fantasy
+        run: |
+          echo '--- INDEX HTML ---'
+          sed -n '1,180p' index.html
+          echo '--- MAIN JS 1-250 ---'
+          sed -n '1,250p' js/main.js
+          echo '--- STYLE CSS 1-130 ---'
+          sed -n '1,130p' css/style.css
+
       - name: Configure Capacitor Android
         working-directory: source/Medieval_Fantasy
         run: |
@@ -269,15 +279,15 @@ jobs:
               stripped = line.strip()
               indent = line[:len(line) - len(line.lstrip())]
               if stripped.startswith("versionCode "):
-                  lines[i] = indent + "versionCode 3"
+                  lines[i] = indent + "versionCode 4"
                   code_found = True
               elif stripped.startswith("versionName "):
-                  lines[i] = indent + 'versionName "1.2"'
+                  lines[i] = indent + 'versionName "1.3"'
                   name_found = True
           if not code_found or not name_found:
               raise SystemExit("No se encontraron versionCode y versionName en build.gradle")
           p.write_text(chr(10).join(lines) + chr(10))
-          print("Versión Android configurada: versionCode=3, versionName=1.2")
+          print("Versión Android configurada: versionCode=4, versionName=1.3")
           PY
           python3 - <<'PY'
           from pathlib import Path
