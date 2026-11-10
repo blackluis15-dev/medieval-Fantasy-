@@ -467,6 +467,37 @@ jobs:
           echo '--- STYLE CSS 1-130 ---'
           sed -n '1,130p' css/style.css
 
+      - name: Apply full-screen pixel-art main menu
+        working-directory: source/Medieval_Fantasy
+        run: |
+          set -e
+          mkdir -p www/assets/images/menu www/assets/fonts
+          cp ../../Medieval_Fantasy_1_5_menu.jpg www/assets/images/menu/medieval-fantasy-menu.jpg
+          npm install @fontsource/press-start-2p
+          FONT_FILE=$(find node_modules/@fontsource/press-start-2p/files -name '*latin-400-normal.woff2' -print -quit)
+          test -n "$FONT_FILE"
+          cp "$FONT_FILE" www/assets/fonts/press-start-2p.woff2
+          cat >> www/css/menu-pause-v13.css <<'CSS'
+          /* 1.5: pantalla de título ilustrada a pantalla completa. */
+          @font-face{font-family:PressStart2P;src:url('../assets/fonts/press-start-2p.woff2') format('woff2');font-display:swap;font-weight:400}
+          body:has(#main-menu:not(.hidden)) header,
+          body:has(#main-menu:not(.hidden)) #hud,
+          body:has(#main-menu:not(.hidden)) footer,
+          body:has(#main-menu:not(.hidden)) #sky-status{display:none!important}
+          #main-menu{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;z-index:10000!important;padding:0!important;overflow:hidden!important;display:flex!important;align-items:stretch!important;justify-content:flex-start!important;background:linear-gradient(90deg,rgba(5,12,9,.76) 0%,rgba(5,12,9,.42) 42%,rgba(5,12,9,.06) 100%),linear-gradient(0deg,rgba(4,10,7,.24),transparent 60%),url('../assets/images/menu/medieval-fantasy-menu.jpg') center center/cover no-repeat!important}
+          #main-menu .menu-card{box-sizing:border-box!important;width:100%!important;height:100%!important;max-height:none!important;min-height:100%!important;padding:5vh 7vw!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;gap:0!important;background:transparent!important;border:0!important;box-shadow:none!important;text-align:left!important;overflow:hidden!important}
+          #main-menu .menu-card:before,#main-menu .sparkle{display:none!important}
+          #main-menu .menu-emblem{width:clamp(75px,12vw,145px)!important;max-height:clamp(48px,12vh,90px)!important;object-fit:contain!important;object-position:left center!important;margin:0 0 8px!important;filter:drop-shadow(3px 4px 0 #17120c)!important}
+          #main-menu .game-logo{font-family:PressStart2P,monospace!important;font-size:clamp(17px,3.2vw,34px)!important;line-height:1.55!important;max-width:54vw!important;color:#fff0c5!important;letter-spacing:0!important;text-shadow:3px 4px 0 #20170f,0 0 12px #d9b66a!important;margin:0 0 8px!important;animation:none!important}
+          #main-menu .menu-subtitle{font-family:PressStart2P,monospace!important;font-size:clamp(7px,1vw,10px)!important;line-height:2!important;letter-spacing:0!important;color:#eee0b8!important;text-shadow:2px 2px 3px #000!important;margin:0 0 12px!important}
+          #main-menu .menu-card>div[style*="font-size:27px"]{font-size:clamp(15px,2vw,22px)!important;letter-spacing:3px!important;filter:drop-shadow(0 3px 3px #000)!important;margin:0 0 8px!important}
+          #main-menu .menu-buttons{display:flex!important;flex-direction:column!important;align-items:stretch!important;width:min(39vw,310px)!important;gap:7px!important;margin:8px 0 0!important}
+          #main-menu .menu-btn{font-family:PressStart2P,monospace!important;font-size:clamp(8px,1vw,11px)!important;line-height:1.8!important;letter-spacing:0!important;text-align:left!important;padding:clamp(9px,1.6vh,14px) 13px!important;color:#fff0cb!important;background:linear-gradient(90deg,rgba(31,49,35,.95),rgba(18,31,24,.82))!important;border:1px solid #c8ad70!important;border-left:4px solid #e2c17c!important;border-radius:2px!important;box-shadow:0 3px 8px #0009!important;text-shadow:2px 2px 2px #000!important}
+          #main-menu .menu-note{font-family:PressStart2P,monospace!important;font-size:7px!important;line-height:1.8!important;color:#e8dbb8!important;text-shadow:2px 2px 3px #000!important;margin:10px 0 0!important}
+          @media(orientation:landscape) and (max-height:430px){#main-menu .menu-card{padding:3vh 6vw!important}#main-menu .menu-emblem{width:80px!important;max-height:45px!important;margin-bottom:4px!important}#main-menu .game-logo{font-size:clamp(14px,2.8vw,25px)!important}#main-menu .menu-subtitle{font-size:6px!important;margin-bottom:5px!important}#main-menu .menu-buttons{width:min(36vw,260px)!important;gap:4px!important;margin-top:5px!important}#main-menu .menu-btn{padding:6px 10px!important;font-size:7px!important}#main-menu .menu-note{font-size:6px!important;margin-top:5px!important}}
+          CSS
+          echo 'Menú 1.5: ilustración, fuente pixel y HUD oculto al inicio aplicados.'
+
       - name: Configure Capacitor Android
         working-directory: source/Medieval_Fantasy
         run: |
