@@ -477,7 +477,7 @@ jobs:
           FONT_FILE=$(find node_modules/@fontsource/press-start-2p/files -name '*latin-400-normal.woff2' -print -quit)
           test -n "$FONT_FILE"
           cp "$FONT_FILE" www/assets/fonts/press-start-2p.woff2
-          cat >> www/css/menu-pause-v13.css <<'CSS'
+          cat > www/css/menu-v15-final.css <<'CSS'
           /* 1.5: pantalla de título ilustrada a pantalla completa. */
           @font-face{font-family:PressStart2P;src:url('../assets/fonts/press-start-2p.woff2') format('woff2');font-display:swap;font-weight:400}
           body:has(#main-menu:not(.hidden)) header,
@@ -496,6 +496,14 @@ jobs:
           #main-menu .menu-note{font-family:PressStart2P,monospace!important;font-size:7px!important;line-height:1.8!important;color:#e8dbb8!important;text-shadow:2px 2px 3px #000!important;margin:10px 0 0!important}
           @media(orientation:landscape) and (max-height:430px){#main-menu .menu-card{padding:3vh 6vw!important}#main-menu .menu-emblem{width:80px!important;max-height:45px!important;margin-bottom:4px!important}#main-menu .game-logo{font-size:clamp(14px,2.8vw,25px)!important}#main-menu .menu-subtitle{font-size:6px!important;margin-bottom:5px!important}#main-menu .menu-buttons{width:min(36vw,260px)!important;gap:4px!important;margin-top:5px!important}#main-menu .menu-btn{padding:6px 10px!important;font-size:7px!important}#main-menu .menu-note{font-size:6px!important;margin-top:5px!important}}
           CSS
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('www/index.html')
+          h=p.read_text()
+          if 'menu-v15-final.css' not in h:
+              h=h.replace('</head>','<link rel="stylesheet" href="css/menu-v15-final.css"></head>',1)
+          p.write_text(h)
+          PY
           echo 'Menú 1.5: ilustración, fuente pixel y HUD oculto al inicio aplicados.'
 
       - name: Configure Capacitor Android
