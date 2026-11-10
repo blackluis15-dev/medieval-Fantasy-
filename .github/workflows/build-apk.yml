@@ -654,8 +654,12 @@ jobs:
           cp.write_text(cs)
           # 3) Usar el emblema M/castillo del juego como logo de menú y generar iconos Android.
           logo=Image.open(assets/'logo/medieval-fantasy-logo.png').convert('RGBA')
-          bbox=logo.getchannel('A').getbbox()
-          if bbox: logo=logo.crop(bbox)
+          alpha=logo.getchannel('A')
+          # Recortar el espacio transparente sobrante que desplaza el emblema hacia un lado.
+          xs=[x for x in range(logo.width) if sum(1 for yy in range(logo.height) if alpha.getpixel((x,yy))>100)>5]
+          ys=[yy for yy in range(logo.height) if sum(1 for x in range(logo.width) if alpha.getpixel((x,yy))>100)>5]
+          if xs and ys: logo=logo.crop((min(xs),min(ys),max(xs)+1,max(ys)+1))
+          logo.save(assets/'logo/medieval-fantasy-logo.png',optimize=True)
           def make_icon(size):
               canvas=Image.new('RGBA',(size,size),(9,22,48,255))
               d=ImageDraw.Draw(canvas)
