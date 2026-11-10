@@ -564,6 +564,170 @@ jobs:
           #main-menu{background-image:linear-gradient(90deg,rgba(5,12,9,.76) 0%,rgba(5,12,9,.42) 42%,rgba(5,12,9,.06) 100%),linear-gradient(0deg,rgba(4,10,7,.24),transparent 60%),url('../assets/images/menu/medieval-fantasy-menu.svg')!important;background-position:center!important;background-size:cover!important;background-repeat:no-repeat!important}
           CSS
           echo 'Menú: transición a partida reparada; fondo SVG vectorial 1600x900 instalado.'
+      - name: Apply 1.5.1 logo, blurred menu, tree textures and Zerbb art
+        working-directory: source/Medieval_Fantasy
+        run: |
+          set -e
+          python3 -m pip install --quiet Pillow
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageEnhance, ImageFilter, ImageDraw
+          import re, json
+          root=Path('.')
+          assets=root/'assets/images'
+          # 1) Crear un atlas vectorial de seis árboles pixel-art.
+          world=assets/'world'
+          world.mkdir(parents=True,exist_ok=True)
+          tree_svg=r'''<svg xmlns="http://www.w3.org/2000/svg" width="384" height="256" viewBox="0 0 384 256" shape-rendering="crispEdges">
+          <defs>
+            <linearGradient id="trunk" x2="1" y2="0"><stop stop-color="#573321"/><stop offset=".48" stop-color="#a56c3e"/><stop offset="1" stop-color="#4b2c20"/></linearGradient>
+            <linearGradient id="leaf" x2="0" y2="1"><stop stop-color="#b3d65b"/><stop offset=".48" stop-color="#4f963f"/><stop offset="1" stop-color="#1d5638"/></linearGradient>
+            <linearGradient id="autumn" x2="0" y2="1"><stop stop-color="#ffd46b"/><stop offset=".5" stop-color="#e77a32"/><stop offset="1" stop-color="#9f3d2c"/></linearGradient>
+          </defs>
+          <!-- Roble -->
+          <g transform="translate(0 0)">
+            <ellipse cx="64" cy="119" rx="43" ry="6" fill="#172c1d" opacity=".35"/>
+            <path d="M57 120L60 72L52 51L64 67L74 49L68 78L73 120Z" fill="url(#trunk)" stroke="#3c291f" stroke-width="2"/>
+            <path d="M61 83L35 54L43 68L21 58L31 79L13 83L39 92L27 105L53 99L64 112L76 98L99 105L88 86L111 78L89 69L98 52L75 66L68 48Z" fill="#24563b" stroke="#183e2e" stroke-width="3"/>
+            <path d="M21 79L34 52L48 47L52 64L68 36L81 52L98 49L105 72L87 84L76 69L61 87L45 76Z" fill="url(#leaf)" stroke="#214b31" stroke-width="2"/>
+            <g fill="#d1e879"><rect x="31" y="60" width="10" height="6"/><rect x="53" y="48" width="9" height="7"/><rect x="76" y="58" width="11" height="6"/><rect x="42" y="82" width="8" height="5"/><rect x="83" y="83" width="8" height="5"/></g>
+            <g fill="#5eaa4a"><rect x="18" y="86" width="11" height="7"/><rect x="61" y="70" width="10" height="7"/><rect x="96" y="77" width="9" height="7"/></g>
+          </g>
+          <!-- Abedul / árbol alto -->
+          <g transform="translate(128 0)">
+            <ellipse cx="64" cy="120" rx="32" ry="5" fill="#172c1d" opacity=".35"/>
+            <path d="M61 120L61 48L66 48L70 120Z" fill="#d8d1ae" stroke="#554737" stroke-width="2"/>
+            <path d="M63 76L38 51L49 63L33 59L43 77L25 80L47 91L37 105L61 96L67 111L78 94L101 103L87 84L108 72L85 67L93 48L73 62L66 38Z" fill="#22553a" stroke="#173d2c" stroke-width="3"/>
+            <path d="M31 76L44 50L57 54L65 35L79 53L96 49L105 70L88 86L72 72L57 88L43 82Z" fill="url(#leaf)" stroke="#214b31" stroke-width="2"/>
+            <g fill="#d6e98a"><rect x="43" y="57" width="8" height="6"/><rect x="65" y="48" width="8" height="6"/><rect x="84" y="64" width="9" height="6"/></g>
+            <g stroke="#5d8c53" stroke-width="2"><path d="M63 55L56 65M69 69L80 79M59 87L49 98"/></g>
+          </g>
+          <!-- Pino -->
+          <g transform="translate(256 0)">
+            <ellipse cx="64" cy="120" rx="31" ry="5" fill="#172c1d" opacity=".35"/>
+            <path d="M61 121L64 22L68 121Z" fill="url(#trunk)"/>
+            <path d="M64 17L40 52L52 49L29 77L45 73L21 101L48 96L37 116L64 108L91 116L80 96L107 101L83 73L99 77L76 49L88 52Z" fill="#174a37" stroke="#123629" stroke-width="3"/>
+            <path d="M64 24L49 50L60 46L38 75L57 70L32 98L61 91L48 111L64 104L80 111L67 91L96 98L71 70L90 75L68 46L79 50Z" fill="url(#leaf)"/>
+            <g fill="#a9d55b"><path d="M64 27L58 44L64 41L70 44Z"/><path d="M47 75L60 69L55 82Z"/><path d="M74 76L85 81L73 85Z"/></g>
+          </g>
+          <!-- Sauce llorón -->
+          <g transform="translate(0 128)">
+            <ellipse cx="64" cy="120" rx="42" ry="5" fill="#172c1d" opacity=".35"/>
+            <path d="M60 120L62 65L55 46L68 62L75 45L68 120Z" fill="url(#trunk)" stroke="#3c291f" stroke-width="2"/>
+            <path d="M63 70L28 47L19 75L34 89L18 112L39 105L44 124L57 100L66 124L79 102L90 123L96 100L112 111L99 83L111 64L88 70L78 43Z" fill="#2a653f" stroke="#19452f" stroke-width="3"/>
+            <g fill="#71b64b" stroke="#2e7542" stroke-width="2"><path d="M25 65Q7 83 28 112L39 116L39 79Z"/><path d="M44 66Q28 91 47 124L57 119L56 78Z"/><path d="M80 65Q100 89 85 124L75 120L72 78Z"/><path d="M99 64Q122 86 101 112L92 117L89 79Z"/></g>
+            <g fill="#c4e56d"><rect x="26" y="79" width="6" height="9"/><rect x="45" y="94" width="6" height="9"/><rect x="86" y="91" width="6" height="9"/><rect x="101" y="80" width="6" height="9"/></g>
+          </g>
+          <!-- Manzano -->
+          <g transform="translate(128 128)">
+            <ellipse cx="64" cy="120" rx="39" ry="5" fill="#172c1d" opacity=".35"/>
+            <path d="M61 120L61 71L52 56L65 68L75 53L69 120Z" fill="url(#trunk)" stroke="#3c291f" stroke-width="2"/>
+            <path d="M28 88L18 69L35 58L42 39L59 48L71 31L86 50L106 47L110 69L96 83L108 101L85 108L64 99L45 110L27 101Z" fill="url(#leaf)" stroke="#214b31" stroke-width="3"/>
+            <g fill="#e94d3f" stroke="#8f2e2a" stroke-width="2"><circle cx="39" cy="69" r="6"/><circle cx="73" cy="56" r="6"/><circle cx="91" cy="79" r="6"/><circle cx="54" cy="91" r="6"/></g>
+            <g fill="#d4ec79"><rect x="29" y="57" width="10" height="6"/><rect x="57" y="42" width="9" height="6"/><rect x="85" y="57" width="9" height="6"/><rect x="76" y="94" width="9" height="5"/></g>
+          </g>
+          <!-- Arce otoñal -->
+          <g transform="translate(256 128)">
+            <ellipse cx="64" cy="120" rx="40" ry="5" fill="#172c1d" opacity=".35"/>
+            <path d="M61 120L62 68L52 49L67 66L77 47L69 120Z" fill="url(#trunk)" stroke="#3c291f" stroke-width="2"/>
+            <path d="M64 31L77 47L97 42L93 62L112 70L94 83L103 102L81 98L65 112L51 96L29 104L37 82L16 69L38 59L33 41L53 48Z" fill="url(#autumn)" stroke="#7e342b" stroke-width="3"/>
+            <g fill="#ffd16c"><path d="M64 31L71 52L59 49Z"/><path d="M97 43L87 62L81 51Z"/><path d="M112 70L90 76L94 64Z"/><path d="M102 101L81 88L88 83Z"/><path d="M29 104L48 86L48 99Z"/><path d="M16 69L41 68L35 78Z"/></g>
+            <g fill="#d94e32"><rect x="42" y="55" width="9" height="7"/><rect x="73" y="70" width="9" height="7"/><rect x="55" y="91" width="10" height="7"/></g>
+          </g>
+          </svg>'''
+          (world/'tree-textures.svg').write_text(tree_svg)
+          # 2) Mejorar la textura existente de Zerbb sin cambiar la cuadrícula 4x4.
+          char_dir=assets/'characters'
+          original=Image.open(char_dir/'zerbb-walk.png').convert('RGBA')
+          rgb=Image.new('RGB',original.size,(0,0,0))
+          rgb.paste(original.convert('RGB'),mask=original.getchannel('A'))
+          rgb=ImageEnhance.Brightness(rgb).enhance(1.12)
+          rgb=ImageEnhance.Contrast(rgb).enhance(1.18)
+          rgb=ImageEnhance.Color(rgb).enhance(1.24)
+          rgb=ImageEnhance.Sharpness(rgb).enhance(1.7)
+          rgb=rgb.filter(ImageFilter.UnsharpMask(radius=1,percent=115,threshold=2))
+          improved=rgb.convert('RGBA')
+          improved.putalpha(original.getchannel('A'))
+          improved.save(char_dir/'zerbb-walk-1.5.1.png',optimize=True)
+          cp=Path('js/characters-player.js')
+          cs=cp.read_text().replace("./assets/images/characters/zerbb-walk.png","./assets/images/characters/zerbb-walk-1.5.1.png",1)
+          cp.write_text(cs)
+          # 3) Usar el emblema M/castillo del juego como logo de menú y generar iconos Android.
+          logo=Image.open(assets/'logo/medieval-fantasy-logo.png').convert('RGBA')
+          bbox=logo.getchannel('A').getbbox()
+          if bbox: logo=logo.crop(bbox)
+          def make_icon(size):
+              canvas=Image.new('RGBA',(size,size),(9,22,48,255))
+              d=ImageDraw.Draw(canvas)
+              pad=max(4,size//32)
+              d.rounded_rectangle((pad,pad,size-pad,size-pad),radius=size//8,outline=(214,174,82,255),width=max(2,size//48))
+              maxbox=int(size*.78)
+              logo2=logo.copy()
+              logo2.thumbnail((maxbox,maxbox),Image.Resampling.LANCZOS)
+              canvas.alpha_composite(logo2,((size-logo2.width)//2,(size-logo2.height)//2))
+              return canvas.convert('RGB')
+          icons=assets/'icons';icons.mkdir(parents=True,exist_ok=True)
+          make_icon(192).save(icons/'medieval-fantasy-192.png',quality=95)
+          make_icon(512).save(icons/'medieval-fantasy-512.png',quality=95)
+          # 4) Cambiar variantes de árboles, sin tocar edificios ni suelo.
+          mp=Path('js/world/world-map.js')
+          ms=mp.read_text().replace("variant:(x*3+y*5)%3","variant:(x*3+y*5)%6",1)
+          mp.write_text(ms)
+          # 5) Reemplazar únicamente el dibujo de árboles por el nuevo atlas.
+          rp=Path('js/core/renderer.js')
+          rs=rp.read_text()
+          if "const treeSheet=new Image()" not in rs:
+              rs=rs.replace("  const hash=(x,y,n=0)=>Math.abs((x*374761393+y*668265263+n*1442695041)>>>0);",
+                "  const hash=(x,y,n=0)=>Math.abs((x*374761393+y*668265503+n*1442695041)>>>0);\n  const treeSheet=new Image();let treeSheetLoaded=false;treeSheet.src='./assets/images/world/tree-textures.svg';treeSheet.onload=()=>{treeSheetLoaded=true;};",1)
+          new_tree="""  function drawTree(t){
+            const x=t.x-cam.x,y=t.y-cam.y,variant=(t.variant||0)%6;
+            if(!treeSheetLoaded){
+              rect(x-8,y+7,20,5,'#315b37');rect(x-2,y-3,8,15,'#725039');
+              rect(x-10,y-13,24,17,['#245536','#315b35','#1f4b3b'][variant%3]);
+              return;
+            }
+            const sx=(variant%3)*128,sy=Math.floor(variant/3)*128;
+            const dw=44,dh=58,dx=Math.round(x-dw/2),dy=Math.round(y-dh+12);
+            ctx.fillStyle='rgba(18,35,22,.32)';
+            ctx.beginPath();ctx.ellipse(x,y+10,13,4,0,0,Math.PI*2);ctx.fill();
+            ctx.imageSmoothingEnabled=false;
+            ctx.drawImage(treeSheet,sx,sy,128,128,dx,dy,dw,dh);
+          }
+          """
+          pattern=r"  function drawTree\(t\)\{.*?\n  \}\n  function drawVegetation"
+          rs2=re.sub(pattern,new_tree+"  function drawVegetation",rs,count=1,flags=re.S)
+          if rs2==rs: raise SystemExit('No se pudo localizar drawTree() para aplicar las texturas.')
+          rp.write_text(rs2)
+          # 6) Hoja de estilo: fondo original suavemente desenfocado, contenido nítido.
+          css=Path('www/css/menu-v151-visuals.css')
+          css.write_text(r'''/* Medieval Fantasy 1.5.1 */
+          #main-menu{isolation:isolate!important;background:transparent!important;overflow:hidden!important}
+          #main-menu::before{content:"";position:absolute;inset:-12px;z-index:-1;pointer-events:none;background-image:linear-gradient(90deg,rgba(4,9,22,.62),rgba(4,9,22,.20) 55%,rgba(4,9,22,.08)),url("../assets/images/menu/medieval-fantasy-menu.svg");background-position:center;background-size:cover;background-repeat:no-repeat;filter:blur(5px) brightness(.82) saturate(1.08);transform:scale(1.035)}
+          #main-menu .menu-card{position:relative!important;z-index:1!important}
+          #main-menu .menu-emblem{width:clamp(105px,15vw,180px)!important;max-height:clamp(65px,16vh,125px)!important;object-fit:contain!important;image-rendering:pixelated!important;filter:drop-shadow(0 4px 7px #000)!important}
+          ''')
+          html=Path('www/index.html')
+          h=html.read_text()
+          if 'menu-v151-visuals.css' not in h:
+              h=h.replace('</head>','<link rel="stylesheet" href="css/menu-v151-visuals.css"></head>',1)
+          html.write_text(h)
+          # Publicar archivos modificados al directorio web que Capacitor empaqueta.
+          import shutil
+          for rel in ['assets/images/world/tree-textures.svg','assets/images/characters/zerbb-walk-1.5.1.png','assets/images/icons/medieval-fantasy-192.png','assets/images/icons/medieval-fantasy-512.png','assets/images/logo/medieval-fantasy-logo.png']:
+              src=Path(rel);dst=Path('www')/rel;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(src,dst)
+          shutil.copy2('js/characters-player.js','www/js/characters-player.js')
+          shutil.copy2('js/core/renderer.js','www/js/core/renderer.js')
+          shutil.copy2('js/world/world-map.js','www/js/world/world-map.js')
+          manifest=json.loads(Path('manifest.webmanifest').read_text())
+          manifest['description']='Medieval Fantasy 1.5.1: aventura medieval en un mundo pixel art.'
+          Path('manifest.webmanifest').write_text(json.dumps(manifest,ensure_ascii=False,indent=2))
+          shutil.copy2('manifest.webmanifest','www/manifest.webmanifest')
+          print('Medieval Fantasy 1.5.1: fondo difuminado, emblema, iconos, árboles y Zerbb actualizados.')
+          PY
+          node --check js/characters-player.js
+          node --check js/core/renderer.js
+          node --check js/world/world-map.js
+          echo 'Recursos 1.5.1 listos para empaquetar.'
       - name: Configure Capacitor Android
         working-directory: source/Medieval_Fantasy
         run: |
@@ -580,15 +744,15 @@ jobs:
               stripped = line.strip()
               indent = line[:len(line) - len(line.lstrip())]
               if stripped.startswith("versionCode "):
-                  lines[i] = indent + "versionCode 6"
+                  lines[i] = indent + "versionCode 7"
                   code_found = True
               elif stripped.startswith("versionName "):
-                  lines[i] = indent + 'versionName "1.5"'
+                  lines[i] = indent + 'versionName "1.5.1"'
                   name_found = True
           if not code_found or not name_found:
               raise SystemExit("No se encontraron versionCode y versionName en build.gradle")
           p.write_text(chr(10).join(lines) + chr(10))
-          print("Versión Android configurada: versionCode=6, versionName=1.5")
+          print("Versión Android configurada: versionCode=7, versionName=1.5.1")
           PY
           python3 - <<'PY'
           from pathlib import Path
@@ -600,6 +764,30 @@ jobs:
           p.write_text(s)
           PY
           npx cap sync android
+          # Icono Android: reutilizar el emblema oficial M/castillo en todos los tamaños.
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import xml.etree.ElementTree as ET
+          res=Path('android/app/src/main/res')
+          logo=Image.open('www/assets/images/icons/medieval-fantasy-512.png').convert('RGBA')
+          sizes={'mipmap-mdpi':48,'mipmap-hdpi':72,'mipmap-xhdpi':96,'mipmap-xxhdpi':144,'mipmap-xxxhdpi':192}
+          for folder,size in sizes.items():
+              d=res/folder;d.mkdir(parents=True,exist_ok=True)
+              icon=logo.resize((size,size),Image.Resampling.LANCZOS)
+              icon.save(d/'ic_launcher.png',optimize=True)
+              icon.save(d/'ic_launcher_round.png',optimize=True)
+          draw=res/'drawable';draw.mkdir(parents=True,exist_ok=True)
+          fg=logo.resize((432,432),Image.Resampling.LANCZOS)
+          fg.save(draw/'ic_launcher_foreground.png',optimize=True)
+          vals=res/'values';vals.mkdir(parents=True,exist_ok=True)
+          (vals/'ic_launcher_background.xml').write_text('<resources><color name="ic_launcher_background">#091630</color></resources>')
+          adaptive=res/'mipmap-anydpi-v26';adaptive.mkdir(parents=True,exist_ok=True)
+          xml='<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><background android:drawable="@color/ic_launcher_background"/><foreground android:drawable="@drawable/ic_launcher_foreground"/></adaptive-icon>'
+          (adaptive/'ic_launcher.xml').write_text(xml)
+          (adaptive/'ic_launcher_round.xml').write_text(xml)
+          print('Icono de aplicación Android actualizado con el emblema oficial.')
+          PY
 
       - name: Build debug APK
         working-directory: source/Medieval_Fantasy/android
