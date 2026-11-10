@@ -352,6 +352,89 @@ jobs:
           }
           """)
           PY
+          # Guardado automático fiable y restauración de partida al volver a jugar.
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("source/Medieval_Fantasy/js/main.js")
+          s=p.read_text()
+          if "function saveGameAutomatically()" not in s:
+              anchor="          "
+              pause_anchor="          "
+              # Inserta la lógica dentro del último parche, tras construir el panel de pausa.
+              point="          "
+              js=r"""
+          function saveGameAutomatically(){
+            if(!gameStarted)return false;
+            try{
+              const snapshot={
+                version:1,
+                savedAt:Date.now(),
+                player:{x:player.x,y:player.y,dir:player.dir},
+                worldClock:{minutes:worldClock.minutes,day:worldClock.day},
+                cam:{x:cam.x,y:cam.y},
+                weather,weatherName
+              };
+              localStorage.setItem('medieval-fantasy-save-v1',JSON.stringify(snapshot));
+              return true;
+            }catch(error){
+              console.warn('No se pudo guardar automáticamente la partida:',error);
+              return false;
+            }
+          }
+          function loadSavedGame(){
+            try{
+              const raw=localStorage.getItem('medieval-fantasy-save-v1');
+              if(!raw)return false;
+              const saved=JSON.parse(raw);
+              if(!saved || saved.version!==1 || !saved.player ||
+                 !Number.isFinite(saved.player.x) || !Number.isFinite(saved.player.y))return false;
+              player.x=saved.player.x;player.y=saved.player.y;
+              if(typeof saved.player.dir==='string')player.dir=saved.player.dir;
+              if(saved.worldClock){
+                if(Number.isFinite(saved.worldClock.minutes))worldClock.minutes=saved.worldClock.minutes;
+                if(Number.isFinite(saved.worldClock.day))worldClock.day=saved.worldClock.day;
+              }
+              if(saved.cam && Number.isFinite(saved.cam.x) && Number.isFinite(saved.cam.y)){
+                cam.x=saved.cam.x;cam.y=saved.cam.y;
+              }else{
+                cam.x=Math.max(0,Math.min(mapW*T-W,player.x-W/2));
+                cam.y=Math.max(0,Math.min(mapH*T-H,player.y-H/2));
+              }
+              if(typeof saved.weather==='string')weather=saved.weather;
+              if(typeof saved.weatherName==='string')weatherName=saved.weatherName;
+              return true;
+            }catch(error){
+              console.warn('No se pudo recuperar la partida guardada:',error);
+              return false;
+            }
+          }
+          // Guardar periódicamente y cuando Android oculta o cierra la actividad.
+          window.setInterval(saveGameAutomatically,15000);
+          document.addEventListener('visibilitychange',()=>{
+            if(document.hidden){
+              saveGameAutomatically();
+              if(gameStarted && !gamePaused)setPaused(true);
+            }
+          });
+          window.addEventListener('pagehide',saveGameAutomatically);
+          window.addEventListener('beforeunload',saveGameAutomatically);
+          window.addEventListener('freeze',saveGameAutomatically);
+          """
+              # Este punto existe después de los cambios de pausa en el código fuente.
+              needle="          pauseButton.addEventListener('click',()=>setPaused(!gamePaused));"
+              if needle not in s:
+                  raise SystemExit("No se encontró el controlador del botón de pausa.")
+              s=s.replace(needle,js+"\n"+needle,1)
+          # Restaurar datos antes de iniciar el mundo, en el controlador final de JUGAR.
+          old="   if(gameStarted)return;\n   gameStarted=true;"
+          new="   if(gameStarted)return;\n   loadSavedGame();\n   gameStarted=true;"
+          if old not in s:
+              raise SystemExit("No se encontró el controlador final de inicio para conectar la recuperación.")
+          if "   loadSavedGame();\n   gameStarted=true;" not in s:
+              s=s.replace(old,new,1)
+          p.write_text(s)
+          print("Guardado automático y recuperación integrados.")
+          PY
           node --check source/Medieval_Fantasy/js/main.js
           node --check source/Medieval_Fantasy/js/core/renderer.js
           node --check source/Medieval_Fantasy/js/core/game-loop.js
@@ -398,15 +481,15 @@ jobs:
               stripped = line.strip()
               indent = line[:len(line) - len(line.lstrip())]
               if stripped.startswith("versionCode "):
-                  lines[i] = indent + "versionCode 4"
+                  lines[i] = indent + "versionCode 5"
                   code_found = True
               elif stripped.startswith("versionName "):
-                  lines[i] = indent + 'versionName "1.3"'
+                  lines[i] = indent + 'versionName "1.4"'
                   name_found = True
           if not code_found or not name_found:
               raise SystemExit("No se encontraron versionCode y versionName en build.gradle")
           p.write_text(chr(10).join(lines) + chr(10))
-          print("Versión Android configurada: versionCode=4, versionName=1.3")
+          print("Versión Android configurada: versionCode=5, versionName=1.4")
           PY
           python3 - <<'PY'
           from pathlib import Path
