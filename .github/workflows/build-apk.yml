@@ -7,6 +7,8 @@ on:
       - 'Medieval_Fantasy_1_1_horizontal_base.zip'
       - '.github/workflows/build-apk.yml'
       - 'menu-landscape-fix.css'
+      - 'Medieval_Fantasy_1_5_menu.jpg'
+      - 'Medieval_Fantasy_1_5_craftpix_atlas.webp'
 
 permissions:
   contents: read
@@ -470,7 +472,7 @@ jobs:
         run: |
           npx cap init "Medieval Fantasy" com.blackluis15.medievalfantasy --web-dir www
           npx cap add android
-          # Publicar esta compilación como versión 1.2 de Android.
+          # Publicar esta compilación como versión 1.5 de Android.
           python3 - <<'PY'
           from pathlib import Path
           p = Path("android/app/build.gradle")
@@ -481,15 +483,15 @@ jobs:
               stripped = line.strip()
               indent = line[:len(line) - len(line.lstrip())]
               if stripped.startswith("versionCode "):
-                  lines[i] = indent + "versionCode 5"
+                  lines[i] = indent + "versionCode 6"
                   code_found = True
               elif stripped.startswith("versionName "):
-                  lines[i] = indent + 'versionName "1.4"'
+                  lines[i] = indent + 'versionName "1.5"'
                   name_found = True
           if not code_found or not name_found:
               raise SystemExit("No se encontraron versionCode y versionName en build.gradle")
           p.write_text(chr(10).join(lines) + chr(10))
-          print("Versión Android configurada: versionCode=5, versionName=1.4")
+          print("Versión Android configurada: versionCode=6, versionName=1.5")
           PY
           python3 - <<'PY'
           from pathlib import Path
