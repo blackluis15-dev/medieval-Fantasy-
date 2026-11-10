@@ -162,6 +162,23 @@ jobs:
           new="   if(!gameStarted || gamePaused || inventory.isOpen()){keys.up=keys.down=keys.left=keys.right=false;return;}"
           if old not in s: raise SystemExit("No se encontró la guarda de update() para activar pausa.")
           s=s.replace(old,new,1)
+          render_old="else{renderer.drawWorld();drawAtmosphere(dt);drawPlayer();}"
+          render_new="else{renderer.drawWorld();drawAtmosphere(gamePaused?0:dt);drawPlayer();}"
+          if render_old in s: s=s.replace(render_old,render_new,1)
+          start_old="   if(gameStarted)return;\\n   gameStarted=true;"
+          start_new="""   if(gameStarted)return;
+           try {
+             const raw=localStorage.getItem('medieval-fantasy-save-v1');
+             if(raw){
+               const saved=JSON.parse(raw);
+               if(saved.player)Object.assign(player,saved.player);
+               if(saved.worldClock)Object.assign(worldClock,saved.worldClock);
+               if(saved.weather)weather=saved.weather;
+               if(saved.weatherName)weatherName=saved.weatherName;
+             }
+           } catch(error) { console.warn('No se pudo cargar la partida guardada:',error); }
+           gameStarted=true;"""
+          if start_old in s: s=s.replace(start_old,start_new,1)
           anchor=" const inventoryScreen=document.getElementById('inventory-screen');"
           pause_js="""
           const pauseButton=document.createElement('button');
