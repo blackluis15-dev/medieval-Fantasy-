@@ -165,7 +165,7 @@ jobs:
           render_old="else{renderer.drawWorld();drawAtmosphere(dt);drawPlayer();}"
           render_new="else{renderer.drawWorld();drawAtmosphere(gamePaused?0:dt);drawPlayer();}"
           if render_old in s: s=s.replace(render_old,render_new,1)
-          start_old="   if(gameStarted)return;\\n   gameStarted=true;"
+          start_old="   if(gameStarted)return;\n   gameStarted=true;"
           start_new="""   if(gameStarted)return;
            try {
              const raw=localStorage.getItem('medieval-fantasy-save-v1');
