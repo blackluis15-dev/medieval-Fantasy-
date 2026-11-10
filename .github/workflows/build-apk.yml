@@ -150,6 +150,108 @@ jobs:
           (root / "js" / "emine-intro.js").write_text(js)
           print("Intro Emine Entertainment instalada.")
           PY
+          # Menú cinematográfico y sistema real de pausa.
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("source/Medieval_Fantasy")
+          main=root/"js/main.js"
+          s=main.read_text()
+          if "let gamePaused=false;" not in s:
+              s=s.replace(" let gameStarted=false;"," let gameStarted=false;\n let gamePaused=false;",1)
+          old="   if(!gameStarted || inventory.isOpen()){keys.up=keys.down=keys.left=keys.right=false;return;}"
+          new="   if(!gameStarted || gamePaused || inventory.isOpen()){keys.up=keys.down=keys.left=keys.right=false;return;}"
+          if old not in s: raise SystemExit("No se encontró la guarda de update() para activar pausa.")
+          s=s.replace(old,new,1)
+          anchor=" const inventoryScreen=document.getElementById('inventory-screen');"
+          pause_js="""
+          const pauseButton=document.createElement('button');
+          pauseButton.id='pause-toggle';pauseButton.type='button';pauseButton.textContent='Ⅱ PAUSA';
+          pauseButton.setAttribute('aria-label','Pausar partida');
+          document.querySelector('header').appendChild(pauseButton);
+          const pausePanel=document.createElement('section');
+          pausePanel.id='pause-screen';pausePanel.className='pause-screen hidden';
+          pausePanel.innerHTML='<div class="pause-card"><div class="pause-kicker">MEDIEVAL FANTASY</div><h2>PARTIDA EN PAUSA</h2><p>El mundo espera tu regreso, aventurero.</p><div class="pause-actions"><button id="pause-resume">▶ CONTINUAR</button><button id="pause-save">✦ GUARDAR PARTIDA</button><button id="pause-options">⚙ OPCIONES</button><button id="pause-menu">⌂ VOLVER AL MENÚ</button></div><small id="pause-feedback">Tu aventura está detenida.</small></div>';
+          document.getElementById('stage').appendChild(pausePanel);
+          const clearMovement=()=>{keys.up=keys.down=keys.left=keys.right=false;player.moving=false;};
+          function setPaused(value){
+            if(!gameStarted && value)return;
+            gamePaused=!!value;clearMovement();
+            pausePanel.classList.toggle('hidden',!gamePaused);
+            pauseButton.textContent=gamePaused?'▶ SEGUIR':'Ⅱ PAUSA';
+            pauseButton.setAttribute('aria-label',gamePaused?'Reanudar partida':'Pausar partida');
+            rainAmbience.set(!gamePaused && weather==='rain' && !currentBuilding);
+          }
+          pauseButton.addEventListener('click',()=>setPaused(!gamePaused));
+          pausePanel.querySelector('#pause-resume').addEventListener('click',()=>setPaused(false));
+          pausePanel.querySelector('#pause-save').addEventListener('click',()=>{
+            try{
+              localStorage.setItem('medieval-fantasy-save-v1',JSON.stringify({
+                player:{x:player.x,y:player.y,dir:player.dir},worldClock:{minutes:worldClock.minutes,day:worldClock.day},
+                cam:{x:cam.x,y:cam.y},weather,weatherName
+              }));
+              pausePanel.querySelector('#pause-feedback').textContent='Partida guardada correctamente.';
+            }catch(error){pausePanel.querySelector('#pause-feedback').textContent='No se pudo guardar en este dispositivo.';}
+          });
+          pausePanel.querySelector('#pause-options').addEventListener('click',()=>{
+            pausePanel.querySelector('#pause-feedback').textContent='Controles: usa WASD, flechas o los controles táctiles.';
+          });
+          pausePanel.querySelector('#pause-menu').addEventListener('click',()=>{
+            setPaused(false);gameStarted=false;clearMovement();
+            mainMenu.classList.remove('hidden');mainMenu.setAttribute('aria-hidden','false');
+            pausePanel.classList.add('hidden');
+          });
+          document.addEventListener('keydown',event=>{
+            if(event.code==='Escape' && gameStarted && !inventory.isOpen()){
+              event.preventDefault();setPaused(!gamePaused);
+            }
+          });
+          """
+          if anchor not in s: raise SystemExit("No se encontró el punto de montaje del panel de pausa.")
+          if "id='pause-screen'" not in s:
+              s=s.replace(anchor,anchor+"\n"+pause_js,1)
+          main.write_text(s)
+          # Estilo de menú principal a pantalla completa y pausa.
+          css=r"""
+          /* Medieval Fantasy 1.3 — menú ilustrado y pausa */
+          #main-menu{padding:0;background:linear-gradient(90deg,rgba(7,16,12,.82) 0%,rgba(7,16,12,.56) 42%,rgba(7,16,12,.08) 100%),linear-gradient(0deg,rgba(5,12,8,.28),transparent 48%);justify-content:flex-start;align-items:center}
+          #main-menu .menu-card{width:100%;height:100%;max-height:none;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;padding:5vh 7vw;background:transparent;border:0;box-shadow:none;text-align:left}
+          #main-menu .menu-card:before,#main-menu .sparkle{display:none}
+          #main-menu .menu-emblem{width:clamp(100px,17vw,190px);max-height:clamp(58px,15vh,110px);object-position:left;margin:0 0 10px;filter:drop-shadow(0 4px 7px #000)}
+          #main-menu .game-logo{font-size:clamp(27px,5vw,58px);line-height:1.02;max-width:48vw;color:#fff0c3;text-shadow:3px 4px 0 #251b13,0 0 16px #d2a85a;margin:0 0 7px;letter-spacing:1px}
+          #main-menu .menu-subtitle{font-size:clamp(9px,1.25vw,14px);letter-spacing:clamp(2px,.5vw,5px);color:#e6d8b1;text-shadow:0 2px 4px #000;margin:0 0 12px}
+          #main-menu .menu-card>div[style*="font-size:27px"]{font-size:clamp(17px,2vw,25px)!important;letter-spacing:4px!important;filter:drop-shadow(0 2px 3px #000)}
+          #main-menu .menu-buttons{display:flex;flex-direction:column;align-items:stretch;width:min(38vw,290px);gap:7px;margin:12px 0 0}
+          #main-menu .menu-btn{padding:clamp(9px,1.7vh,15px) 18px;text-align:left;font-size:clamp(12px,1.3vw,16px);letter-spacing:2px;color:#fff1ce;background:linear-gradient(90deg,rgba(40,58,39,.94),rgba(24,35,27,.74));border:1px solid #c9ad6b;border-left:4px solid #e0c27b;border-radius:2px;box-shadow:0 3px 8px #0008;text-shadow:0 2px 3px #000}
+          #main-menu .menu-btn:active{filter:brightness(1.35);transform:translateX(3px)}
+          #main-menu .menu-note{font-size:10px;color:#e8dfc2;text-shadow:0 2px 4px #000;margin:12px 0 0}
+          #pause-toggle{margin-left:auto;margin-right:8px;min-width:76px;padding:6px 9px;color:#fff0c7;background:rgba(39,55,39,.88);border:1px solid #c6ad70;border-radius:4px;font-size:10px;font-weight:800;letter-spacing:1px}
+          .pause-screen{position:absolute;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,10,8,.76);backdrop-filter:blur(4px)}
+          .pause-card{width:min(88vw,430px);padding:clamp(18px,4vh,34px);text-align:center;background:linear-gradient(145deg,#354a35,#17271d);border:3px solid #c2a568;box-shadow:0 0 0 4px #1a1b14,0 18px 50px #000b;color:#f7edcf}
+          .pause-kicker{font-size:10px;letter-spacing:4px;color:#d9c28b}
+          .pause-card h2{font:700 clamp(22px,4vw,34px) Georgia,serif;color:#ffe7ac;text-shadow:2px 3px #332619;margin:10px 0}
+          .pause-card p{font-size:12px;color:#d9d0b4;margin:0 0 15px}
+          .pause-actions{display:grid;gap:8px;width:min(100%,280px);margin:auto}
+          .pause-actions button{padding:11px 12px;background:linear-gradient(#71834c,#344d32);border:1px solid #c5ad70;color:#fff2d0;font-weight:800;letter-spacing:1px;box-shadow:0 3px #101b13}
+          .pause-actions button:active{transform:translateY(2px);box-shadow:0 1px #101b13}
+          #pause-feedback{display:block;min-height:14px;margin-top:14px;color:#d8c99c;font-size:10px}
+          @media(orientation:landscape) and (max-height:430px){
+            #main-menu .menu-card{padding:3vh 6vw}
+            #main-menu .menu-emblem{max-height:58px;width:110px;margin-bottom:4px}
+            #main-menu .game-logo{font-size:clamp(22px,4.5vw,38px)}
+            #main-menu .menu-subtitle{margin-bottom:5px}
+            #main-menu .menu-buttons{width:min(35vw,250px);gap:4px;margin-top:6px}
+            #main-menu .menu-btn{padding:6px 12px}
+            #main-menu .menu-note{margin-top:5px}
+          }
+          """
+          (root/"css"/"menu-pause-v13.css").write_text(css)
+          html=root/"index.html"
+          h=html.read_text()
+          if "menu-pause-v13.css" not in h:
+              h=h.replace("</head>",'<link rel="stylesheet" href="css/menu-pause-v13.css"></head>',1)
+          html.write_text(h)
+          print("Menú cinematográfico y pausa integrados.")
+          PY
           # Inspeccionar las texturas disponibles sin detener la compilación si el ZIP usa otra estructura.
           python3 - <<'PY'
           from pathlib import Path
